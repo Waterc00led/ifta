@@ -10,14 +10,13 @@ class ApiService {
     var response =
         await http.post(url, body: {'email': username, 'password': password});
     if (response.statusCode == 200) {
-
       // Save cookie
       var headers = response.headers;
       var cookie = headers['set-cookie'];
       if (cookie != null) {
         await CookieManager.saveCookie(cookie);
       }
-      
+
       return true;
     } else {
       return false;
@@ -41,23 +40,24 @@ class ApiService {
   }
 
   static Future<bool> logout() async {
-  var headers = {};
-  if (Platform.isAndroid) {
-    var cookie = await CookieManager.getCookie();
-    headers = {'cookie': cookie};
-    await CookieManager.saveCookie('');
-  }
+    var headers = {};
+    if (Platform.isAndroid) {
+      var cookie = await CookieManager.getCookie();
+      headers = {'cookie': cookie};
+      await CookieManager.saveCookie('');
+    }
 
-  var url = Uri.parse('$BASE_API_URL/session');
-  var response = await http.delete(url, headers: headers.cast<String, String>());
-  if (response.statusCode == 200) {
-    return true;
-  } else if (response.statusCode == 401) {
-    // Handle the case where the user is already logged out
-    print('User is already logged out');
-    return false;
-  } else {
-    return false;
+    var url = Uri.parse('$BASE_API_URL/session');
+    var response =
+        await http.delete(url, headers: headers.cast<String, String>());
+    if (response.statusCode == 200) {
+      return true;
+    } else if (response.statusCode == 401) {
+      // Handle the case where the user is already logged out
+      print('User is already logged out');
+      return false;
+    } else {
+      return false;
+    }
   }
-}
 }

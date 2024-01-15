@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ifta/api_service.dart';
 import 'package:ifta/home_page.dart';
 import 'package:ifta/login_page.dart';
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
