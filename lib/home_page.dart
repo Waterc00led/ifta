@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:ifta/api_service.dart';
 import 'package:ifta/components/jurisdiction_input.dart';
+import 'package:ifta/login_page.dart';
 
 class FieldData {
   final String title;
@@ -56,7 +58,30 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home Page'),
+        title: const Text('Home Page'),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text('Menu'),
+            ),
+            ListTile(
+              title: const Text('Logout'),
+              onTap: () async {
+                await ApiService.logout();
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                  );
+              },
+            ),
+          ],
+        ),
       ),
       body: SafeArea(
         child: Column(
