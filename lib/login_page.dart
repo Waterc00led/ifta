@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'home_page.dart';
@@ -48,9 +47,9 @@ class _LoginPageState extends State<LoginPage> {
         print("done");
         // If server returns an OK response, navigate to HomePage.
         // navigate to home page
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
-          CupertinoPageRoute(builder: (context) => HomePage()),
+          MaterialPageRoute(builder: (context) => HomePage()),
         );
       } else {
         // Handle login failure
@@ -63,6 +62,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Login Page'),
+        automaticallyImplyLeading: false, // Add this line
       ),
       body: Form(
         key: _formKey,

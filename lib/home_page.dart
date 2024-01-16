@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:ifta/api_service.dart';
-import 'package:ifta/cookie_manager.dart';
-import 'package:http/http.dart' as http;
-import 'dart:io' show Platform;
-import 'package:flutter/cupertino.dart';
-import 'package:ifta/login_page.dart';
+import 'package:ifta/components/jurisdiction_input.dart';
+
+class FieldData {
+  final String title;
+  final String hint;
+
+  FieldData(this.title, this.hint);
+}
 
 class HomePage extends StatefulWidget {
   @override
@@ -12,85 +14,80 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  @override
-  void initState() {
-    super.initState();
-    fetchData();
+  List<Widget> jurisdictionList = [];
+
+  void addJurisdiction() {
+    setState(() {
+      jurisdictionList.add(
+        Container(
+          height: 500, // Set the height as needed
+          width: double.infinity, // This will take the full available width
+          child: JurisdictionInput(
+            key: UniqueKey(),
+            onDelete: () => removeJurisdiction(jurisdictionList.length - 1),
+          ),
+        ),
+      );
+    });
   }
 
-  Future<void> fetchData() async {
-    var headers = {};
-    if (Platform.isAndroid) {
-      var cookie = await CookieManager.getCookie();
-      headers = {'cookie': cookie};
-    }
-
-    var url = Uri.parse('http://eldlab.synodicinc.com:8081/api/eld/user');
-    var cookie = await CookieManager.getCookie();
-    var response = await http.get(url, headers: headers.cast<String, String>());
-    if (response.statusCode == 200) {
-      print("done2");
-      print('Data: ${response.body}');
-    } else {
-      print("not done2");
-      //throw Exception('Failed to load data');
-    }
+  void removeJurisdiction(int index) {
+    setState(() {
+      jurisdictionList.removeAt(index);
+    });
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('IFTA Calculator'),
-        leading: Builder(
-          builder: (BuildContext context) {
-            return IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            );
-          },
+Widget build(BuildContext context) {
+  return Stack(
+    children: [
+      Scaffold(
+        appBar: AppBar(
+          title: Text('Home Page'),
+        ),
+        body: SingleChildScrollView(
+          child: jurisdictionList.isEmpty
+              ? Center(child: Text('No Jurisdiction Data Entered'))
+              : Column(
+                  children: jurisdictionList,
+                ),
+        ),
+        floatingActionButton: Container(), // Remove the floating action button
+      ),
+      Positioned(
+        left: 0,
+        right: 0,
+        bottom: 0,
+        child: Card(
+          elevation: 5,
+          margin: EdgeInsets.all(10),
+          child: Padding(
+            padding: EdgeInsets.all(10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Number of Jurisdiction Records: ${jurisdictionList.length}'),
+                Row(
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        // Handle submit action here
+                      },
+                      child: Text('Submit'),
+                    ),
+                    SizedBox(width: 10), // Add some space between the buttons
+                    ElevatedButton(
+                      onPressed: addJurisdiction,
+                      child: Text('Add Jurisdiction'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Text('Menu'),
-            ),
-            ListTile(
-              title: const Text('Logout'),
-              onTap: () async {
-                bool success = await ApiService.logout();
-                if (success) {
-                  print('Logout successful');
-                  // Then close the drawer and navigate to the login page
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    CupertinoPageRoute(builder: (context) => LoginPage()),
-                  );
-                } else {
-                  print('Logout failed');
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'Welcome to IFTA Calculator',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+    ],
+  );
+}
 }

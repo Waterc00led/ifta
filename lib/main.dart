@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:ifta/splash_Screen.dart';
 
 void main() => runApp(const MyApp());
