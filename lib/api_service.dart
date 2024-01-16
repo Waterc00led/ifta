@@ -35,7 +35,7 @@ class ApiService {
 
   static Future<String> getUser() async {
     var headers = {};
-    if (Platform.isAndroid) {
+    if (!Platform.isAndroid) {
       var cookie = await CookieManager.getCookie();
       headers = {'cookie': cookie};
     }
@@ -51,7 +51,7 @@ class ApiService {
 
   static Future<bool> logout() async {
     var headers = {};
-    if (Platform.isAndroid) {
+    if (!Platform.isFuchsia) {
       var cookie = await CookieManager.getCookie();
       headers = {'cookie': cookie};
       await CookieManager.saveCookie('');

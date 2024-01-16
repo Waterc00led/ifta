@@ -1,66 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:ifta/components/fuel_receipt_input.dart';
 
-class FieldData {
-  final String title;
-  final String hint;
-
-  FieldData(this.title, this.hint);
-}
-
 class JurisdictionInput extends StatefulWidget {
   final VoidCallback onDelete;
 
-  const JurisdictionInput({Key? key, required this.onDelete}) : super(key: key);
+  JurisdictionInput({Key? key, required this.onDelete}) : super(key: key);
 
   @override
   _JurisdictionInputState createState() => _JurisdictionInputState();
 }
 
 class _JurisdictionInputState extends State<JurisdictionInput> {
-  List<FieldData> fieldDataList = [
-    FieldData('Fuel Receipt 1', 'Enter fuel receipt details'),
-  ];
+  List<FuelReceiptInput> fieldDataList = [];
+  final TextEditingController mileageController = TextEditingController();
+  String selectedCountry = 'USA';
+  String selectedState = 'State 1';
 
   void addFields() {
+    String uniqueId = 'uniqueId${fieldDataList.length}';
+    print(uniqueId);
+
     setState(() {
-      fieldDataList.add(FieldData('Fuel Receipt ${fieldDataList.length + 1}',
-          'Enter fuel receipt details'));
+      fieldDataList.add(
+        FuelReceiptInput(
+          key: ValueKey(uniqueId), // Assign a unique ID to this widget
+          onDelete: () => removeFields(
+              uniqueId), // Pass the existing unique ID to the removeFields method
+        ),
+      );
     });
   }
 
-  void removeFields(int index) {
+  void removeFields(String uniqueId) {
     setState(() {
-      fieldDataList.removeAt(index);
+      fieldDataList.removeWhere((widget) =>
+          widget.key ==
+          ValueKey(uniqueId)); // Remove the widget with the matching key
     });
-  }
-
-  Widget buildDropdownButton(List<String> items) {
-    return DropdownButton<String>(
-      items: items.map((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-      onChanged: (_) {},
-    );
-  }
-
-  Widget buildTextField(String hint) {
-    return TextField(
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(
-        border: const OutlineInputBorder(),
-        hintText: hint,
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(10),
+      margin: EdgeInsets.all(10),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.black),
         borderRadius: BorderRadius.circular(10),
@@ -69,33 +51,68 @@ class _JurisdictionInputState extends State<JurisdictionInput> {
         children: [
           Card(
             elevation: 5,
-            margin: const EdgeInsets.all(10),
+            margin: EdgeInsets.all(10),
             child: Padding(
-              padding: const EdgeInsets.all(10),
+              padding: EdgeInsets.all(10),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Expanded(
                     child: Column(
                       children: [
-                        const Text('Country'),
-                        buildDropdownButton(['USA', 'Canada', 'Mexico']),
+                        Text('Country'),
+                        DropdownButton<String>(
+                          value: selectedCountry,
+                          items: <String>['USA', 'Canada', 'Mexico']
+                              .map((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedCountry = value??'';
+                            });
+                          },
+                        ),
                       ],
                     ),
                   ),
                   Expanded(
                     child: Column(
                       children: [
-                        const Text('State'),
-                        buildDropdownButton(['State 1', 'State 2', 'State 3']),
+                        Text('State'),
+                        DropdownButton<String>(
+                          value: selectedState,
+                          items: <String>['State 1', 'State 2', 'State 3']
+                              .map((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedState = value??'';
+                            });
+                          },
+                        ),
                       ],
                     ),
                   ),
                   Expanded(
                     child: Column(
                       children: [
-                        const Text('Mileage'),
-                        buildTextField('Enter mileage'),
+                        Text('Mileage'),
+                        TextField(
+                          controller: mileageController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            hintText: 'Enter mileage',
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -104,35 +121,35 @@ class _JurisdictionInputState extends State<JurisdictionInput> {
             ),
           ),
           Expanded(
-            child: fieldDataList.isEmpty
-                ? Center(child: const Text('No Fuel Receipt Added'))
-                : ListView.builder(
-                    itemCount: fieldDataList.length,
-                    itemBuilder: (context, index) {
-                      final fieldData = fieldDataList[index];
-                      return FuelReceiptInput(
-                        title: fieldData.title,
-                        hint: fieldData.hint,
-                        onDelete: () => removeFields(index),
-                      );
-                    },
-                  ),
+            child: SingleChildScrollView(
+              child: fieldDataList.isEmpty
+                  ? const Center(child: Text('No Fuel Receipt Added'))
+                  : Column(
+                      children: fieldDataList,
+                    ),
+            ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               ElevatedButton(
-                child: const Text('Add Fuel Receipt Input'),
+                child: Text('Add Fuel Receipt Input'),
                 onPressed: addFields,
               ),
-              ElevatedButton(
+              TextButton(
                 onPressed: widget.onDelete,
-                child: const Text('Remove Jurisdiction Input'),
+                child: Text('Remove Jurisdiction Input'),
               ),
             ],
           ),
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    mileageController.dispose();
+    super.dispose();
   }
 }
