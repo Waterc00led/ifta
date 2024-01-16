@@ -33,9 +33,28 @@ class ApiService {
     }
   }
 
+  static Future<String> getTemplates() async {
+  var headers = {};
+  if (Platform.isAndroid || Platform.isIOS || Platform.isWindows) {
+    var cookie = await CookieManager.getCookie();
+    headers = {'cookie': cookie};
+  }
+
+  var url = Uri.parse('$BASE_API_URL/eld/system/document/template');
+  var response = await http.get(url, headers: headers.cast<String, String>());
+  if (response.statusCode == 200) {
+
+    UserPreferences.saveIftaValues(response.body);
+
+    return response.body;
+  } else {
+    throw Exception('Failed to load data');
+  }
+}
+
   static Future<String> getUser() async {
     var headers = {};
-    if (!Platform.isAndroid) {
+    if (Platform.isAndroid || Platform.isIOS || Platform.isWindows) {
       var cookie = await CookieManager.getCookie();
       headers = {'cookie': cookie};
     }
@@ -51,7 +70,7 @@ class ApiService {
 
   static Future<bool> logout() async {
     var headers = {};
-    if (!Platform.isFuchsia) {
+    if (Platform.isAndroid || Platform.isIOS || Platform.isWindows) {
       var cookie = await CookieManager.getCookie();
       headers = {'cookie': cookie};
       await CookieManager.saveCookie('');

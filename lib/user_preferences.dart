@@ -15,4 +15,16 @@ class UserPreferences {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('username');
   }
+
+  // save ifta values response
+  static Future<void> saveIftaValues(String iftaValues) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('iftaValues', iftaValues);
+  }
+
+  // get ifta values response
+  static Future<String?> getIftaValues() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('iftaValues');
+  }
 }
