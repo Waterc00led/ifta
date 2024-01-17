@@ -31,6 +31,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   Future<void> initUser() async {
+    print("initUser");
     try {
       String response = await ApiService.getUser();
       await ApiService.getTemplates();

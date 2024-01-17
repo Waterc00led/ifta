@@ -35,11 +35,6 @@ class ApiService {
 
   static Future<String> getTemplates() async {
   var headers = {};
-  if (Platform.isAndroid || Platform.isIOS || Platform.isWindows) {
-    var cookie = await CookieManager.getCookie();
-    headers = {'cookie': cookie};
-  }
-
   var url = Uri.parse('$BASE_API_URL/eld/system/document/template');
   var response = await http.get(url, headers: headers.cast<String, String>());
   if (response.statusCode == 200) {
@@ -54,27 +49,22 @@ class ApiService {
 
   static Future<String> getUser() async {
     var headers = {};
-    if (Platform.isAndroid || Platform.isIOS || Platform.isWindows) {
-      var cookie = await CookieManager.getCookie();
-      headers = {'cookie': cookie};
-    }
 
     var url = Uri.parse('$BASE_API_URL/eld/user');
+    print(url);
     var response = await http.get(url, headers: headers.cast<String, String>());
+    print(response);
     if (response.statusCode == 200) {
+      print(response);
       return response.body;
     } else {
+      print(response);
       throw Exception('Failed to load data');
     }
   }
 
   static Future<bool> logout() async {
     var headers = {};
-    if (Platform.isAndroid || Platform.isIOS || Platform.isWindows) {
-      var cookie = await CookieManager.getCookie();
-      headers = {'cookie': cookie};
-      await CookieManager.saveCookie('');
-    }
 
     await UserPreferences.deleteUser();
 

@@ -19,6 +19,7 @@ class _FuelReceiptInputState extends State<FuelReceiptInput> {
   String _amountPaid = '';
   List<String> _fuelTypes = [];
   List<String> _fuelUnits = [];
+  List<String> _currencies = [];
 
   DropdownButton<String> buildDropdownButton(List<String> items,
       String selectedValue, ValueChanged<String?> onChanged) {
@@ -34,18 +35,6 @@ class _FuelReceiptInputState extends State<FuelReceiptInput> {
     );
   }
 
-  List<DropdownMenuItem<String>> _getDropdownMenuItems(String values) {
-    // Assuming values are in the format '[value1:value1, value2:value2, ...]'
-    List<String> pairs = values.substring(1, values.length - 1).split(', ');
-    return pairs.map((pair) {
-      List<String> splitPair = pair.split(':');
-      return DropdownMenuItem<String>(
-        value: splitPair[0],
-        child: Text(splitPair[1]),
-      );
-    }).toList();
-  }
-
   void assignValuesToDropdowns(String serverResponse) {
     Map<String, dynamic> responseObj = jsonDecode(serverResponse);
     Map<String, dynamic> fuelReceiptValues =
@@ -55,20 +44,30 @@ class _FuelReceiptInputState extends State<FuelReceiptInput> {
     List<String> fuelTypePairs =
         fuelTypeString.substring(1, fuelTypeString.length - 1).split(', ');
     List<String> fuelTypes = fuelTypePairs.map((pair) {
-      return pair.split(':')[0]; // Split the pair and return the key
+      return pair.split(':')[1]; // Split the pair and return the key  
     }).toList();
 
     String fuelUnitString = fuelReceiptValues['FuelUnit'].toString();
     List<String> fuelUnitKeyPAir =
         fuelUnitString.substring(1, fuelUnitString.length - 1).split(', ');
     List<String> fuelUnits = fuelUnitKeyPAir.map((pair) {
-      return pair.split(':')[0]; // Split the pair and return the key
+      return pair.split(':')[1]; // Split the pair and return the key
+    }).toList();
+
+    String currenciesString = fuelReceiptValues['Currency'].toString();
+    List<String> currenciesKeyPair =
+        currenciesString.substring(1, currenciesString.length - 1).split(', ');
+    List<String> currencies = currenciesKeyPair.map((pair) {
+      return pair.split(':')[1]; // Split the pair and return the key
     }).toList();
 
     setState(() {
       _fuelTypes = fuelTypes;
       _fuelUnits = fuelUnits;
+      _currencies = currencies;
       _selectedFuelType = _fuelTypes[0];
+      _selectedUnit = _fuelUnits[0];
+      _selectedCurrency = _currencies[0];
     });
   }
 
@@ -89,8 +88,7 @@ class _FuelReceiptInputState extends State<FuelReceiptInput> {
   void initState() {
     super.initState();
     UserPreferences.getIftaValues().then((response) {
-      print("response: " + response!);
-      assignValuesToDropdowns(response!);
+      assignValuesToDropdowns(response??"");
     });
   }
 
@@ -151,7 +149,7 @@ class _FuelReceiptInputState extends State<FuelReceiptInput> {
                   children: [
                     const Text('Currency'),
                     buildDropdownButton(
-                      ['Currency 1', 'Currency 2', 'Currency 3'],
+                      _currencies,
                       _selectedCurrency,
                       (value) => setState(() => _selectedCurrency = value!),
                     ),
