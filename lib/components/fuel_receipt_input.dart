@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:ifta/components/fuel_receipt_class.dart';
 import 'package:ifta/user_preferences.dart';
 import 'dart:convert';
 
 class FuelReceiptInput extends StatefulWidget {
-  final VoidCallback onDelete;
+  final FuelReceiptClass fuelReceiptClass = FuelReceiptClass(UniqueKey());
+  final Function(FuelReceiptClass fuelReceiptClass) onDelete;
+  final Function(FuelReceiptClass fuelReceiptClass) onValuesChanged;
 
-  FuelReceiptInput({Key? key, required this.onDelete}) : super(key: key);
+  FuelReceiptInput({Key? key, required this.onDelete, required this.onValuesChanged}) : super(key: key) {
+    fuelReceiptClass.setUniqueId = key!;
+  }
 
   @override
   _FuelReceiptInputState createState() => _FuelReceiptInputState();
@@ -15,8 +21,8 @@ class _FuelReceiptInputState extends State<FuelReceiptInput> {
   String _selectedFuelType = 'Fuel Type 1';
   String _selectedUnit = 'Unit 1';
   String _selectedCurrency = 'Currency 1';
-  String _volume = '';
-  String _amountPaid = '';
+  int _volume = 0;
+  double _amountPaid = 0.0;
   List<String> _fuelTypes = [];
   List<String> _fuelUnits = [];
   List<String> _currencies = [];
@@ -84,6 +90,48 @@ class _FuelReceiptInputState extends State<FuelReceiptInput> {
     );
   }
 
+  void _handleFuelTypeChanged(String value) {
+    setState(() {
+      _selectedFuelType = value;
+    });
+    widget.fuelReceiptClass.setFuelType = _selectedFuelType;
+    widget.onValuesChanged(widget.fuelReceiptClass);
+  }
+
+  void _handleUnitChanged(String value) {
+    setState(() {
+      _selectedUnit = value;
+    });
+    widget.fuelReceiptClass.setFuelUnit = _selectedUnit;
+    widget.onValuesChanged(widget.fuelReceiptClass);
+  }
+
+
+  void _handleCurrencyChanged(String value) {
+    setState(() {
+      _selectedCurrency = value;
+    });
+    widget.fuelReceiptClass.setCurrency = _selectedCurrency;
+    widget.onValuesChanged(widget.fuelReceiptClass);
+  }
+
+  void _handleVolumeChanged(int value) {
+    setState(() {
+      _volume = value;
+    });
+    widget.fuelReceiptClass.setVolume = _volume;
+    widget.onValuesChanged(widget.fuelReceiptClass);
+  }
+
+  void _handleAmountChnge(double value) {
+    setState(() {
+      _amountPaid = value;
+    });
+    widget.fuelReceiptClass.setTotalAmount = _amountPaid;
+    widget.onValuesChanged(widget.fuelReceiptClass);
+  }
+
+
   @override
   void initState() {
     super.initState();
@@ -122,10 +170,17 @@ class _FuelReceiptInputState extends State<FuelReceiptInput> {
                 child: Column(
                   children: [
                     const Text('Volume'),
-                    buildTextField(
-                      'Volume',
-                      _volume,
-                      (value) => setState(() => _volume = value),
+                    TextField(
+                      onChanged: (value) =>
+                          _handleVolumeChanged(int.parse(value)),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly
+                      ],
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: 'Enter volume',
+                      ),
                     ),
                   ],
                 ),
@@ -161,17 +216,24 @@ class _FuelReceiptInputState extends State<FuelReceiptInput> {
                 child: Column(
                   children: [
                     const Text('Amount Paid'),
-                    buildTextField(
-                      'Amount Paid',
-                      _amountPaid,
-                      (value) => setState(() => _amountPaid = value),
+                    TextField(
+                      onChanged: (value) =>
+                          _handleAmountChnge(double.parse(value)),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly
+                      ],
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: 'Enter amount',
+                      ),
                     ),
                   ],
                 ),
               ),
               TextButton(
-                child: Text("Remove"),
-                onPressed: widget.onDelete,
+                child: const Text("Remove"),
+                onPressed: () => widget.onDelete(widget.fuelReceiptClass),
               ),
             ],
           ),

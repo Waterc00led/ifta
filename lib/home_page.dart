@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:ifta/about_us.dart';
 import 'package:ifta/api_service.dart';
+import 'package:ifta/components/jurisdiction_class.dart';
 import 'package:ifta/components/jurisdiction_input.dart';
 import 'package:ifta/login_page.dart';
-
-class FieldData {
-  final String title;
-  final String hint;
-
-  FieldData(this.title, this.hint);
-}
 
 class HomePage extends StatefulWidget {
   @override
@@ -17,10 +12,25 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<Widget> jurisdictionList = [];
-  List<String> jurisdictionKeys = []; // Keep track of the keys of the widgets
+  List<Key> jurisdictionKeys = []; // Keep track of the keys of the widgets
+
+  List<JurisdictionClass> jurisdictionValues = [];
+
+  void handleJurisdictionValuesChanged(JurisdictionClass jurisdictionClass) {
+    print("Change in Jurisdiction Values");
+    int index = jurisdictionValues.indexWhere(
+        (element) => element.getUniqueId == jurisdictionClass.getUniqueId);
+    if (index == -1) {
+      print("Adding Jurisdiction Class");
+      jurisdictionValues.add(jurisdictionClass);
+    } else {
+      print("Updating Jurisdiction Class");
+      jurisdictionValues[index] = jurisdictionClass;
+    }
+  }
 
   void addJurisdiction() {
-    String uniqueId = 'uniqueId${jurisdictionList.length}';
+    Key uniqueId = UniqueKey(); // Create a unique key for each widget
     jurisdictionKeys.add(uniqueId); // Add the key to the list of keys
 
     setState(() {
@@ -29,20 +39,23 @@ class _HomePageState extends State<HomePage> {
           constraints: BoxConstraints(
               maxHeight: 500), // Set the maximum height as needed
           child: JurisdictionInput(
-            key: ValueKey(uniqueId), // Assign a unique key to this widget
-            onDelete: () => removeJurisdiction(
-                uniqueId), // Pass the unique ID to the removeFields method
+            key: uniqueId, // Assign a unique key to this widget
+            onDelete: (jurisdictionClass) => removeJurisdiction(
+                jurisdictionClass), // Pass the unique ID to the removeFields method
+            onValuesChanged: handleJurisdictionValuesChanged,
           ),
         ),
       );
     });
   }
 
-  void removeJurisdiction(String uniqueId) {
-    int indexToRemove = jurisdictionKeys
-        .indexOf(uniqueId); // Find the index of the key in the list of keys
-    print(indexToRemove.toString() + " indexToRemove");
-    print(uniqueId + " uniqueId");
+  void removeJurisdiction(JurisdictionClass jurisdictionClass) {
+    print(jurisdictionClass.toJson());
+    int indexToRemove = jurisdictionKeys.indexOf(jurisdictionClass
+        .uniqueId); // Find the index of the key in the list of keys
+
+    // remove JurisdictionClass from jurisdictionValues
+    jurisdictionValues.remove(jurisdictionClass);
 
     if (indexToRemove != -1) {
       setState(() {
@@ -75,17 +88,59 @@ class _HomePageState extends State<HomePage> {
               onTap: () async {
                 await ApiService.logout();
                 Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => LoginPage()),
-                  );
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginPage()),
+                );
               },
             ),
+            ListTile(
+  title: Text('About Us'),
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AboutUsPage()),
+    );
+  },
+),
           ],
         ),
       ),
       body: SafeArea(
         child: Column(
           children: [
+            Container(
+              margin: EdgeInsets.all(10), // Add margin
+              child: Card(
+                color: Colors.blue[100], // Set the background color of the card
+                child: Padding(
+                  padding: EdgeInsets.all(10), // Add padding
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Year Quarter',
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      DropdownButton<String>(
+                        hint: Text('Select an item'),
+                        items: <String>[
+                          'First item',
+                          'Second item',
+                          'Third item'
+                        ].map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (_) {},
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
             Expanded(
               child: SingleChildScrollView(
                 child: jurisdictionList.isEmpty
@@ -109,7 +164,9 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         ElevatedButton(
                           onPressed: () {
-                            // Handle submit action here
+                            jurisdictionValues.forEach(
+                              (element) => print(element.toJson()),
+                            );
                           },
                           child: Text('Submit'),
                         ),

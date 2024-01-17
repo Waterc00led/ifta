@@ -1,26 +1,62 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:ifta/components/fuel_receipt_input.dart';
+import 'package:ifta/components/jurisdiction_class.dart';
 import 'package:ifta/user_preferences.dart';
 
 class JurisdictionInput extends StatefulWidget {
-  final VoidCallback onDelete;
+  final JurisdictionClass jurisdictionClass = JurisdictionClass(UniqueKey());
+  final Function(JurisdictionClass jurisdictionClass) onDelete;
+  final Function(JurisdictionClass jurisdictionClass) onValuesChanged;
 
-  JurisdictionInput({Key? key, required this.onDelete}) : super(key: key);
+  JurisdictionInput(
+      {Key? key, required this.onDelete, required this.onValuesChanged})
+      : super(key: key) {
+    jurisdictionClass.setUniqueId = key!;
+  }
 
   @override
   _JurisdictionInputState createState() => _JurisdictionInputState();
 }
 
 class _JurisdictionInputState extends State<JurisdictionInput> {
-  List<FuelReceiptInput> fieldDataList = [];
+  List<FuelReceiptInput> _fuelReceiptInputs = [];
   final TextEditingController mileageController = TextEditingController();
   String _selectedCountry = 'USA';
   String _selectedState = 'State 1';
+  int _mileage = 0;
 
   List<String> _countries = [];
   List<String> _states = [];
+
+  bool isExpanded = false; // Add this line
+
+  void _handleMileageChange(int value) {
+    setState(() {
+      _mileage = value;
+    });
+    widget.jurisdictionClass.setMileage = value;
+    widget.onValuesChanged(widget.jurisdictionClass);
+  }
+
+  void _handleCountryChanged(String value) {
+    setState(() {
+      _selectedCountry = value;
+    });
+    widget.jurisdictionClass.setCountry = _selectedCountry;
+    widget.onValuesChanged(widget.jurisdictionClass);
+  }
+
+  void _handleStateChanged(String value) {
+    setState(() {
+      _selectedState = value;
+    });
+    widget.jurisdictionClass.setState = _selectedState;
+    widget.onValuesChanged(widget.jurisdictionClass);
+  }
 
   DropdownButton<String> buildDropdownButton(List<String> items,
       String selectedValue, ValueChanged<String?> onChanged) {
@@ -36,22 +72,17 @@ class _JurisdictionInputState extends State<JurisdictionInput> {
     );
   }
 
-
   void assignValuesToDropdowns(String serverResponse) {
     Map<String, dynamic> responseObj = jsonDecode(serverResponse);
     Map<String, dynamic> fuelReceiptValues =
         responseObj['FuelReceipt']['values'];
 
-        print("ok1");
-
     String countriesString = fuelReceiptValues['Country'].toString();
     List<String> countriesKeyValuePair =
         countriesString.substring(1, countriesString.length - 1).split(', ');
     List<String> countries = countriesKeyValuePair.map((pair) {
-      return pair.split(':')[1]; // Split the pair and return the key  
+      return pair.split(':')[1]; // Split the pair and return the key
     }).toList();
-
-    print(countries);
 
     String statesString = fuelReceiptValues['Jurisdiction'].toString();
     List<String> statesKeyValuePair =
@@ -71,32 +102,47 @@ class _JurisdictionInputState extends State<JurisdictionInput> {
   }
 
   void addFields() {
-    String uniqueId = 'uniqueId${fieldDataList.length}';
+    Key uniqueId = UniqueKey();
+
+    print("added");
     print(uniqueId);
 
     setState(() {
-      fieldDataList.add(
+      _fuelReceiptInputs.add(
         FuelReceiptInput(
-          key: ValueKey(uniqueId), // Assign a unique ID to this widget
-          onDelete: () => removeFields(
-              uniqueId), // Pass the existing unique ID to the removeFields method
+          key: uniqueId, // Assign a unique ID to this widget
+          onDelete: (fuelReceiptClass) => {
+            removeFields(fuelReceiptClass.getUniqueId),
+          }, // Pass the existing unique ID to the removeFields method
+          onValuesChanged: (fuelReceiptClass) => {
+            widget.jurisdictionClass.addFuelReceiptClass(fuelReceiptClass),
+            widget.onValuesChanged(widget.jurisdictionClass),
+          }
         ),
       );
     });
+
+    widget.onValuesChanged(widget.jurisdictionClass);
   }
 
-  void removeFields(String uniqueId) {
+  void removeFields(Key uniqueId) {
+
+    print("removed");
+    print(uniqueId);
+
     setState(() {
-      fieldDataList.removeWhere((widget) =>
-          widget.key ==
-          ValueKey(uniqueId)); // Remove the widget with the matching key
+      _fuelReceiptInputs.removeWhere((element) => element.key == uniqueId);
     });
+
+    widget.jurisdictionClass.removeFuelReceiptClass(uniqueId);
+    widget.onValuesChanged(widget.jurisdictionClass);
   }
 
   @override
   void initState() {
     super.initState();
-    UserPreferences.getIftaValues().then((value) => assignValuesToDropdowns(value!));
+    UserPreferences.getIftaValues()
+        .then((value) => assignValuesToDropdowns(value!));
   }
 
   @override
@@ -121,7 +167,8 @@ class _JurisdictionInputState extends State<JurisdictionInput> {
                     child: Column(
                       children: [
                         Text('Country'),
-                        buildDropdownButton(_countries , _selectedCountry, (value) => setState(() => _selectedCountry = value!),)
+                        buildDropdownButton(_countries, _selectedCountry,
+                            (value) => _handleCountryChanged(value!)),
                       ],
                     ),
                   ),
@@ -129,8 +176,11 @@ class _JurisdictionInputState extends State<JurisdictionInput> {
                     child: Column(
                       children: [
                         Text('State'),
-                        buildDropdownButton(_states, _selectedState,
-                            (value) => setState(() => _selectedState = value!),),
+                        buildDropdownButton(
+                          _states,
+                          _selectedState,
+                          (value) => _handleStateChanged(value!),
+                        ),
                       ],
                     ),
                   ),
@@ -139,8 +189,13 @@ class _JurisdictionInputState extends State<JurisdictionInput> {
                       children: [
                         Text('Mileage'),
                         TextField(
+                          onChanged: (value) =>
+                              _handleMileageChange(int.tryParse(value) ?? 0),
                           controller: mileageController,
                           keyboardType: TextInputType.number,
+                          inputFormatters: <TextInputFormatter>[
+                            FilteringTextInputFormatter.digitsOnly
+                          ],
                           decoration: InputDecoration(
                             border: OutlineInputBorder(),
                             hintText: 'Enter mileage',
@@ -155,10 +210,10 @@ class _JurisdictionInputState extends State<JurisdictionInput> {
           ),
           Expanded(
             child: SingleChildScrollView(
-              child: fieldDataList.isEmpty
+              child: _fuelReceiptInputs.isEmpty
                   ? const Center(child: Text('No Fuel Receipt Added'))
                   : Column(
-                      children: fieldDataList,
+                      children: _fuelReceiptInputs,
                     ),
             ),
           ),
@@ -170,7 +225,7 @@ class _JurisdictionInputState extends State<JurisdictionInput> {
                 onPressed: addFields,
               ),
               TextButton(
-                onPressed: widget.onDelete,
+                onPressed: () => widget.onDelete(widget.jurisdictionClass),
                 child: Text('Remove Jurisdiction Input'),
               ),
             ],
