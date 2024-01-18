@@ -110,15 +110,15 @@ class _JurisdictionInputState extends State<JurisdictionInput> {
     setState(() {
       _fuelReceiptInputs.add(
         FuelReceiptInput(
-          key: uniqueId, // Assign a unique ID to this widget
-          onDelete: (fuelReceiptClass) => {
-            removeFields(fuelReceiptClass.getUniqueId),
-          }, // Pass the existing unique ID to the removeFields method
-          onValuesChanged: (fuelReceiptClass) => {
-            widget.jurisdictionClass.addFuelReceiptClass(fuelReceiptClass),
-            widget.onValuesChanged(widget.jurisdictionClass),
-          }
-        ),
+            key: uniqueId, // Assign a unique ID to this widget
+            onDelete: (fuelReceiptClass) => {
+                  removeFields(fuelReceiptClass.getUniqueId),
+                }, // Pass the existing unique ID to the removeFields method
+            onValuesChanged: (fuelReceiptClass) => {
+                  widget.jurisdictionClass
+                      .addFuelReceiptClass(fuelReceiptClass),
+                  widget.onValuesChanged(widget.jurisdictionClass),
+                }),
       );
     });
 
@@ -126,7 +126,6 @@ class _JurisdictionInputState extends State<JurisdictionInput> {
   }
 
   void removeFields(Key uniqueId) {
-
     print("removed");
     print(uniqueId);
 
@@ -150,15 +149,16 @@ class _JurisdictionInputState extends State<JurisdictionInput> {
     return Container(
       margin: EdgeInsets.all(10),
       decoration: BoxDecoration(
+        color: Colors.lightBlue[50], // This will be the background color
         border: Border.all(color: Colors.black),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Column(
-        children: [
-          Card(
-            elevation: 5,
-            margin: EdgeInsets.all(10),
-            child: Padding(
+      child: Card(
+        elevation: 5,
+        margin: EdgeInsets.all(10),
+        child: Column(
+          children: [
+            Padding(
               padding: EdgeInsets.all(10),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -204,33 +204,33 @@ class _JurisdictionInputState extends State<JurisdictionInput> {
                       ],
                     ),
                   ),
-                ],
+                ], // This is the missing closing bracket
               ),
             ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              child: _fuelReceiptInputs.isEmpty
-                  ? const Center(child: Text('No Fuel Receipt Added'))
-                  : Column(
-                      children: _fuelReceiptInputs,
-                    ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: _fuelReceiptInputs.isEmpty
+                    ? const Center(child: Text('No Fuel Receipt Added'))
+                    : Column(
+                        children: _fuelReceiptInputs,
+                      ),
+              ),
             ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
-                child: Text('Add Fuel Receipt Input'),
-                onPressed: addFields,
-              ),
-              TextButton(
-                onPressed: () => widget.onDelete(widget.jurisdictionClass),
-                child: Text('Remove Jurisdiction Input'),
-              ),
-            ],
-          ),
-        ],
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  child: Text('Add Fuel Receipt Input'),
+                  onPressed: addFields,
+                ),
+                TextButton(
+                  onPressed: () => widget.onDelete(widget.jurisdictionClass),
+                  child: Text('Remove Jurisdiction Input'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -38,7 +38,6 @@ class FuelReceiptClass {
   // To JSON
 
   Map<String, dynamic> toJson() => {
-    'uniqueId': uniqueId,
     'fuelType': fuelType,
     'volume': volume,
     'fuelUnit': fuelUnit,

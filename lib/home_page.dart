@@ -4,6 +4,7 @@ import 'package:ifta/api_service.dart';
 import 'package:ifta/components/jurisdiction_class.dart';
 import 'package:ifta/components/jurisdiction_input.dart';
 import 'package:ifta/login_page.dart';
+import 'package:flutter/services.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -13,6 +14,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<Widget> jurisdictionList = [];
   List<Key> jurisdictionKeys = []; // Keep track of the keys of the widgets
+
+  String _selectedQuarterYear = '';
 
   List<JurisdictionClass> jurisdictionValues = [];
 
@@ -69,122 +72,138 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home Page'),
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
+    return FutureBuilder(
+      future: ApiService.getTemplates(),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text('IFTA calculator is out of service at the moment.'),
+            actions: <Widget>[
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  // Exit the app when the OK button is pressed
+                  SystemNavigator.pop();
+                },
               ),
-              child: Text('Menu'),
+            ],
+          );
+        } else {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Home Page'),
             ),
-            ListTile(
-              title: const Text('Logout'),
-              onTap: () async {
-                await ApiService.logout();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
-                );
-              },
-            ),
-            ListTile(
-  title: Text('About Us'),
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => AboutUsPage()),
-    );
-  },
-),
-          ],
-        ),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              margin: EdgeInsets.all(10), // Add margin
-              child: Card(
-                color: Colors.blue[100], // Set the background color of the card
-                child: Padding(
-                  padding: EdgeInsets.all(10), // Add padding
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Year Quarter',
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      DropdownButton<String>(
-                        hint: Text('Select an item'),
-                        items: <String>[
-                          'First item',
-                          'Second item',
-                          'Third item'
-                        ].map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (_) {},
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                child: jurisdictionList.isEmpty
-                    ? Center(child: Text('No Jurisdiction Data Entered'))
-                    : Column(
-                        children: jurisdictionList,
-                      ),
-              ),
-            ),
-            Card(
-              elevation: 5,
-              margin: EdgeInsets.all(10),
-              child: Padding(
-                padding: EdgeInsets.all(10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                        'Number of Jurisdiction Records: ${jurisdictionList.length}'),
-                    Row(
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            jurisdictionValues.forEach(
-                              (element) => print(element.toJson()),
-                            );
-                          },
-                          child: Text('Submit'),
-                        ),
-                        SizedBox(
-                            width: 10), // Add some space between the buttons
-                        ElevatedButton(
-                          onPressed: addJurisdiction,
-                          child: Text('Add Jurisdiction'),
-                        ),
-                      ],
+            drawer: Drawer(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: <Widget>[
+                  const DrawerHeader(
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
                     ),
-                  ],
-                ),
+                    child: Text('Menu'),
+                  ),
+                  ListTile(
+                    title: Text('About Us'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => AboutUsPage()),
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
+            body: SafeArea(
+              child: Column(
+                children: [
+                  Container(
+                    margin: EdgeInsets.all(10), // Add margin
+                    child: Card(
+                      color: Colors
+                          .blue[100], // Set the background color of the card
+                      child: Padding(
+                        padding: EdgeInsets.all(10), // Add padding
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Year Quarter',
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            DropdownButton<String>(
+                              hint: Text('Select an item'),
+                              items: <String>[
+                                'First item',
+                                'Second item',
+                                'Third item'
+                              ].map<DropdownMenuItem<String>>((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                _selectedQuarterYear = value!;
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: jurisdictionList.isEmpty
+                          ? Center(child: Text('No Jurisdiction Data Entered'))
+                          : Column(
+                              children: jurisdictionList,
+                            ),
+                    ),
+                  ),
+                  Card(
+                    elevation: 5,
+                    margin: EdgeInsets.all(10),
+                    child: Padding(
+                      padding: EdgeInsets.all(10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                              'Number of Jurisdiction Records: ${jurisdictionList.length}'),
+                          Row(
+                            children: [
+                              ElevatedButton(
+                                onPressed: () {
+                                  ApiService.postJurisdiction(
+                                      jurisdictionValues, _selectedQuarterYear);
+                                },
+                                child: Text('Submit'),
+                              ),
+                              SizedBox(
+                                  width:
+                                      10), // Add some space between the buttons
+                              ElevatedButton(
+                                onPressed: addJurisdiction,
+                                child: Text('Add Jurisdiction'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+      },
     );
   }
 }

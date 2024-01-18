@@ -10,7 +10,8 @@ class SplashScreen extends StatefulWidget {
   _SplashScreenState createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   AnimationController? _animationController;
   late Animation<double> _animation;
 
@@ -27,7 +28,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       curve: Curves.easeIn,
     );
 
-    initUser();
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()),
+      );
+    });
+
+    //initUser();
   }
 
   Future<void> initUser() async {

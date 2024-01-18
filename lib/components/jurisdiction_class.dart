@@ -37,7 +37,6 @@ class JurisdictionClass {
 
   // To JSON
   Map<String, dynamic> toJson() => {
-    'uniqueId': uniqueId,
     'mileage': mileage,
     'country': country,
     'state': state,

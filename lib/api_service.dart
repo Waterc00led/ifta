@@ -1,4 +1,5 @@
 import 'package:http/http.dart' as http;
+import 'package:ifta/components/jurisdiction_class.dart';
 import 'dart:io' show Platform;
 import 'package:ifta/cookie_manager.dart';
 import 'package:ifta/user_preferences.dart';
@@ -80,5 +81,35 @@ class ApiService {
     } else {
       return false;
     }
+  }
+
+  static Future<void> postJurisdiction(List<JurisdictionClass> jurisdictionValues, String selectedQuarterYear) async {
+    // Convert the list of JurisdictionClass objects into a list of maps
+    List<Map<String, dynamic>> jurisdictionValuesJson = jurisdictionValues.map((item) => item.toJson()).toList();
+
+    // Create the object
+    Map<String, dynamic> data = {
+      'jurisdictionValues': jurisdictionValuesJson,
+      'selectedQuarterYear': selectedQuarterYear,
+    };
+
+    // Convert the object to JSON
+    String body = jsonEncode(data);
+
+    print(body);
+
+    // // Send the POST request
+    // http.Response response = await http.post(
+    //   Uri.parse('https://your-api-endpoint.com'), // Replace with your API endpoint
+    //   headers: {"Content-Type": "application/json"},
+    //   body: body,
+    // );
+
+    // // Handle the response
+    // if (response.statusCode == 200) {
+    //   print('Success!');
+    // } else {
+    //   print('Failed to post jurisdiction. Status code: ${response.statusCode}');
+    // }
   }
 }
