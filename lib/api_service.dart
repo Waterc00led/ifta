@@ -6,7 +6,7 @@ import 'package:ifta/user_preferences.dart';
 import 'dart:convert';
 
 class ApiService {
-  static const String BASE_API_URL = 'http://eldlab.synodicinc.com:8081/api';
+  static const String BASE_API_URL = 'https://eldlab.synodicinc.com:8081/api';
 
   static Future<bool> login(String username, String password) async {
     var url = Uri.parse('$BASE_API_URL/session');
