@@ -24264,7 +24264,7 @@ while(true)switch(s){case 0:m=t.z
 l=A.B(m,m)
 m=t.N
 s=3
-return A.a2(A.aIb(A.hj("http://eldlab.synodicinc.com:8081/api/eld/system/document/template",0,null),l.jk(l,m,m)),$async$VN)
+return A.a2(A.aIb(A.hj("https://eldlab.synodicinc.com:8081/api/eld/system/document/template",0,null),l.jk(l,m,m)),$async$VN)
 case 3:p=b
 if(p.b===200){m=p.e
 o=A.av2(A.atU(m).c.a.h(0,"charset"))
